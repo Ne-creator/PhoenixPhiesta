@@ -1,0 +1,13 @@
+{
+  "item.phoenixphiesta.garmet_ingot": "Garmet Ingot",
+  "item.phoenixphiesta.raw_garmet": "Raw Garmet",
+
+  "block.phoenixphiesta.garmet_ore": "Garmet Ore",
+  "block.phoenixphiesta.deepslate_garmet_ore": "Deepslate Garmet Ore",
+  "block.phoenixphiesta.garmet_block": "Block Of Garmet",
+
+  "block.phoenixphiesta.watt_steam_engine": "Watt Steam Engine",
+  "title.phoenixphiesta.steam_engine": "Watt Steam Engine",
+
+  "itemGroup.phoenixphiesta": "PhoenixPhiesta!"
+}
