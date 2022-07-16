@@ -71,4 +71,8 @@ public class WattSteamEngineBlockEntity extends BlockEntity implements MenuProvi
             }
         };
     }
+
+    public int getContainerSize() {
+        return 5;
+    }
 }
