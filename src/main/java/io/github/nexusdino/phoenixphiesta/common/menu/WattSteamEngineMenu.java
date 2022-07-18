@@ -3,18 +3,19 @@ package io.github.nexusdino.phoenixphiesta.common.menu;
 import io.github.nexusdino.phoenixphiesta.common.blockentity.WattSteamEngineBlockEntity;
 import io.github.nexusdino.phoenixphiesta.core.init.ModBlocks;
 import io.github.nexusdino.phoenixphiesta.core.init.ModMenuTypes;
+import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ContainerData;
-import net.minecraft.world.inventory.ContainerLevelAccess;
-import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Objects;
 
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
 public class WattSteamEngineMenu extends AbstractContainerMenu {
     private final ContainerData data;
     private final WattSteamEngineBlockEntity blockEntity;
@@ -26,9 +27,12 @@ public class WattSteamEngineMenu extends AbstractContainerMenu {
 
         addDataSlots(data);
     }
+    public WattSteamEngineMenu(int windowId, Inventory inv, FriendlyByteBuf buf) {
+        this(windowId, inv, new SimpleContainerData(1), (WattSteamEngineBlockEntity) Objects.requireNonNull(inv.player.level.getBlockEntity(buf.readBlockPos())));
+    }
 
     @Override
-    public @NotNull ItemStack quickMoveStack(Player player, int index) {
+    public ItemStack quickMoveStack(Player player, int index) {
         ItemStack itemstack = ItemStack.EMPTY;
         Slot slot = this.slots.get(index);
         if (slot.hasItem()) {
@@ -60,7 +64,7 @@ public class WattSteamEngineMenu extends AbstractContainerMenu {
     }
 
     @Override
-    public boolean stillValid(@NotNull Player player) {
+    public boolean stillValid(Player player) {
         Level level = Objects.requireNonNull(blockEntity.getLevel());
         var access = ContainerLevelAccess.create(level, blockEntity.getBlockPos());
         return stillValid(access, player, ModBlocks.STEAM_ENGINE.get());

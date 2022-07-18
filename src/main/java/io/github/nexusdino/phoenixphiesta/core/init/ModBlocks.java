@@ -18,7 +18,7 @@ import net.minecraftforge.registries.RegistryObject;
 import java.util.function.Supplier;
 
 public final class ModBlocks {
-    private static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS,
+    public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS,
             PhoenixPhiesta.MOD_ID);
 
     public static final RegistryObject<Block> GARMET_ORE = BLOCKS.register("garmet_ore", () ->

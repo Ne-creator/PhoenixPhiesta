@@ -1,11 +1,18 @@
 package io.github.nexusdino.phoenixphiesta.common.entity;
 
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.FlyingMob;
+import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.level.Level;
 
-public class Phoenix extends FlyingMob {
-    protected Phoenix(EntityType<? extends FlyingMob> p_20806_, Level p_20807_) {
-        super(p_20806_, p_20807_);
+public class Phoenix extends PathfinderMob {
+    public Phoenix(EntityType<? extends PathfinderMob> pEntityType, Level pLevel) {
+        super(pEntityType, pLevel);
+    }
+
+    public static AttributeSupplier.Builder createAttributes() {
+        return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 400.0D).add(Attributes.ATTACK_DAMAGE, 10.0D);
     }
 }

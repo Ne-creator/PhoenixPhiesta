@@ -1,6 +1,7 @@
 package io.github.nexusdino.phoenixphiesta.common.block;
 
 import io.github.nexusdino.phoenixphiesta.common.blockentity.WattSteamEngineBlockEntity;
+import io.github.nexusdino.phoenixphiesta.core.init.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -9,10 +10,11 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.network.NetworkHooks;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -30,13 +32,18 @@ public class WattSteamEngineBlock extends BaseEntityBlock {
         return new WattSteamEngineBlockEntity(p_153215_, p_153216_);
     }
 
+    @Nullable
     @Override
-    public @NotNull InteractionResult use(BlockState p_60503_, Level p_60504_, BlockPos p_60505_,
-                                          Player p_60506_, InteractionHand p_60507_, BlockHitResult p_60508_) {
-        if (!p_60504_.isClientSide && p_60504_.getBlockEntity(p_60505_) instanceof WattSteamEngineBlockEntity w) {
-                NetworkHooks.openScreen(((ServerPlayer) p_60506_), w, p_60505_);
-                return InteractionResult.SUCCESS;
-            }
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level pLevel, BlockState pState, BlockEntityType<T> pBlockEntityType) {
+        return pLevel.isClientSide ? null : createTickerHelper(pBlockEntityType, ModBlockEntities.STEAM_ENGINE.get(), (pLevel1, pPos, pState1, pBlockEntity) -> pBlockEntity.tick());
+    }
+
+    @Override
+    public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
+        if (!pLevel.isClientSide && pLevel.getBlockEntity(pPos) instanceof WattSteamEngineBlockEntity entity) {
+            NetworkHooks.openScreen(((ServerPlayer) pPlayer), entity, pPos);
+            return InteractionResult.SUCCESS;
+        }
         return InteractionResult.PASS;
     }
 }

@@ -14,7 +14,7 @@ public final class ModMenuTypes {
             PhoenixPhiesta.MOD_ID);
 
     public static final RegistryObject<MenuType<WattSteamEngineMenu>> WATT_STEAM_ENGINE = MENU_TYPES
-            .register("watt_steam_engine", () -> IForgeMenuType.create((windowId, inv, data) -> new WattSteamEngineMenu()));
+            .register("watt_steam_engine", () -> IForgeMenuType.create(WattSteamEngineMenu::new));
 
     public static void register(IEventBus eventBus) {
         MENU_TYPES.register(eventBus);
