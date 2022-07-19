@@ -6,8 +6,11 @@ import io.github.nexusdino.phoenixphiesta.core.config.Config;
 import io.github.nexusdino.phoenixphiesta.core.init.*;
 import io.github.nexusdino.phoenixphiesta.core.network.PacketHandler;
 import net.minecraft.client.gui.screens.MenuScreens;
+import net.minecraft.world.entity.SpawnPlacements;
+import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.MinecraftForge;
@@ -48,13 +51,20 @@ public class PhoenixPhiesta {
 
         ModRecipes.register(modEventBus);
 
-        Config.registerConfigs();
 
         MinecraftForge.EVENT_BUS.register(this);
     }
 
     private void setup(FMLCommonSetupEvent event) {
-        event.enqueueWork(PacketHandler::init);
+        event.enqueueWork(() -> {
+            PacketHandler.init();
+            Config.registerConfigs();
+
+            SpawnPlacements.register(ModEntities.PHOENIX.get(),
+                    SpawnPlacements.Type.NO_RESTRICTIONS,
+                    Heightmap.Types.WORLD_SURFACE,
+                    Monster::checkMonsterSpawnRules);
+        });
     }
 
     @Mod.EventBusSubscriber(modid = PhoenixPhiesta.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
@@ -62,9 +72,7 @@ public class PhoenixPhiesta {
 
         @SubscribeEvent
         public static void clientSetup(FMLClientSetupEvent event) {
-            event.enqueueWork(() -> {
-                MenuScreens.register(ModMenuTypes.WATT_STEAM_ENGINE.get(), WattSteamEngineScreen::new);
-            });
+            event.enqueueWork(() -> MenuScreens.register(ModMenuTypes.WATT_STEAM_ENGINE.get(), WattSteamEngineScreen::new));
         }
     }
 }

@@ -21,16 +21,16 @@ public final class ModBlocks {
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS,
             PhoenixPhiesta.MOD_ID);
 
-    public static final RegistryObject<Block> GARMET_ORE = BLOCKS.register("garmet_ore", () ->
+    public static final RegistryObject<Block> GARMET_ORE = registerBlock("garmet_ore", () ->
             new Block(BlockBehaviour.Properties.copy(Blocks.DIAMOND_ORE))
     );
-    public static final RegistryObject<Block> DEEPSLATE_GARMET_ORE = BLOCKS.register("deepslate_garmet_ore", () ->
+    public static final RegistryObject<Block> DEEPSLATE_GARMET_ORE = registerBlock("deepslate_garmet_ore", () ->
             new Block(BlockBehaviour.Properties.copy(Blocks.DEEPSLATE_DIAMOND_ORE))
     );
-    public static final RegistryObject<Block> GARMET_BLOCK = BLOCKS.register("garmet_block", () ->
+    public static final RegistryObject<Block> GARMET_BLOCK = registerBlock("garmet_block", () ->
             new Block(BlockBehaviour.Properties.copy(Blocks.DIAMOND_BLOCK))
     );
-    public static final RegistryObject<Block> STEAM_ENGINE = BLOCKS.register("watt_steam_engine", () ->
+    public static final RegistryObject<Block> STEAM_ENGINE = registerBlock("watt_steam_engine", () ->
             new WattSteamEngineBlock(BlockBehaviour.Properties.of(Material.METAL).strength(10F)
                     .sound(SoundType.METAL).requiresCorrectToolForDrops())
     );

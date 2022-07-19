@@ -18,7 +18,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public record SteamEngineRecipe(ResourceLocation id, NonNullList<Ingredient> ingredients, ItemStack output) implements Recipe<SimpleContainer> {
+public record SteamEngineRecipe(ResourceLocation id, NonNullList<Ingredient> ingredients, ItemStack output, double fluidFillAmount) implements Recipe<SimpleContainer> {
     /**
      * Used to check if a recipe matches current crafting inventory
      *
@@ -92,8 +92,10 @@ public record SteamEngineRecipe(ResourceLocation id, NonNullList<Ingredient> ing
             for (int i = 0; i < inputs.size(); i++) {
                 inputs.set(i, Ingredient.fromJson(ingredients.get(i)));
             }
+            double fillAmount = GsonHelper.getAsDouble(pSerializedRecipe, "fluid_fill_amount");
+
             ItemStack output = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(pSerializedRecipe, "output"));
-            return new SteamEngineRecipe(pRecipeId, inputs, output);
+            return new SteamEngineRecipe(pRecipeId, inputs, output, fillAmount);
         }
 
         @Override
@@ -101,7 +103,7 @@ public record SteamEngineRecipe(ResourceLocation id, NonNullList<Ingredient> ing
             NonNullList<Ingredient> inputs = NonNullList.withSize(pBuffer.readInt(), Ingredient.EMPTY);
             inputs.replaceAll(ignored -> Ingredient.fromNetwork(pBuffer));
             ItemStack output = pBuffer.readItem();
-            return new SteamEngineRecipe(pRecipeId, inputs, output);
+            return new SteamEngineRecipe(pRecipeId, inputs, output, pBuffer.readDouble());
         }
 
         @Override
@@ -109,6 +111,7 @@ public record SteamEngineRecipe(ResourceLocation id, NonNullList<Ingredient> ing
             pBuffer.writeInt(pRecipe.getIngredients().size());
             pBuffer.writeResourceLocation(pRecipe.id);
             pRecipe.getIngredients().forEach(ingredient -> ingredient.toNetwork(pBuffer));
+            pBuffer.writeDouble(pRecipe.fluidFillAmount);
         }
     }
 }

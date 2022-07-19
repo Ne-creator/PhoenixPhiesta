@@ -18,7 +18,7 @@ public class SteamEngineConfig {
     private static void assignConfigValues(ForgeConfigSpec.Builder builder) {
         MAX_PROGRESS = builder.comment("Max Progress").defineInRange("maxProgress", 100, 10, Integer.MAX_VALUE);
 
-        builder.comment("Capacity of the steam engine").defineInRange("capacity", 1000, 10, Integer.MAX_VALUE);
+        CAPACITY = builder.comment("Capacity of the steam engine").defineInRange("capacity", 1000, 10, Integer.MAX_VALUE);
         MAX_TRANSFER = builder.comment("max extract and transfer").defineInRange("maxTransfer", 100, 10, CAPACITY.getDefault());
     }
 }

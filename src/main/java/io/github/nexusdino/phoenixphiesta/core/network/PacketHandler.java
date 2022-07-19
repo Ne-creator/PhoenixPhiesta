@@ -32,11 +32,17 @@ public final class PacketHandler {
                 .decoder(ClientboundUpdateEnergyPacket::new)
                 .consumerMainThread(ClientboundUpdateEnergyPacket::handle)
                 .add();
+        net.messageBuilder(ClientboundUpdateFluidPacket.class, getPacketId(), NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(ClientboundUpdateFluidPacket::encode)
+                .decoder(ClientboundUpdateFluidPacket::new)
+                .consumerMainThread(ClientboundUpdateFluidPacket::handle)
+                .add();
     }
 
     public static <MSG> void sendToClient(MSG msg) {
         INSTANCE.sendTo(msg, Objects.requireNonNull(Minecraft.getInstance().getConnection()).getConnection(), NetworkDirection.PLAY_TO_CLIENT);
     }
+
     public static <MSG> void sendToServer(MSG msg) {
         INSTANCE.sendToServer(msg);
     }

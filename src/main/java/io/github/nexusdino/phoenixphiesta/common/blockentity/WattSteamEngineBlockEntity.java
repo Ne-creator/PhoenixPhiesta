@@ -3,13 +3,13 @@ package io.github.nexusdino.phoenixphiesta.common.blockentity;
 import io.github.nexusdino.phoenixphiesta.PhoenixPhiesta;
 import io.github.nexusdino.phoenixphiesta.common.menu.WattSteamEngineMenu;
 import io.github.nexusdino.phoenixphiesta.core.config.SteamEngineConfig;
+import io.github.nexusdino.phoenixphiesta.core.init.ModBlockEntities;
+import io.github.nexusdino.phoenixphiesta.core.init.ModRecipes;
 import io.github.nexusdino.phoenixphiesta.core.network.ClientboundUpdateEnergyPacket;
 import io.github.nexusdino.phoenixphiesta.core.network.PacketHandler;
 import io.github.nexusdino.phoenixphiesta.core.util.CustomEnergyStorage;
 import io.github.nexusdino.phoenixphiesta.core.util.IEnergyHandlerBlockEntity;
 import io.github.nexusdino.phoenixphiesta.core.util.IItemHandlerBlockEntity;
-import io.github.nexusdino.phoenixphiesta.core.init.ModBlockEntities;
-import io.github.nexusdino.phoenixphiesta.core.init.ModRecipes;
 import io.github.nexusdino.phoenixphiesta.data.recipe.SteamEngineRecipe;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
@@ -28,13 +28,22 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.CapabilityEnergy;
-import net.minecraftforge.energy.EnergyStorage;
 import net.minecraftforge.energy.IEnergyStorage;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.IFluidTank;
+import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
+import net.minecraftforge.fluids.capability.templates.FluidTank;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import software.bernie.geckolib3.core.IAnimatable;
+import software.bernie.geckolib3.core.PlayState;
+import software.bernie.geckolib3.core.builder.AnimationBuilder;
+import software.bernie.geckolib3.core.controller.AnimationController;
+import software.bernie.geckolib3.core.manager.AnimationData;
+import software.bernie.geckolib3.core.manager.AnimationFactory;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Objects;
@@ -42,15 +51,18 @@ import java.util.Optional;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class WattSteamEngineBlockEntity extends BlockEntity implements MenuProvider, IItemHandlerBlockEntity, IEnergyHandlerBlockEntity {
+public class WattSteamEngineBlockEntity extends BlockEntity implements MenuProvider, IItemHandlerBlockEntity, IEnergyHandlerBlockEntity, IAnimatable {
     private final ItemStackHandler itemHandler = createHandler();
     private final CustomEnergyStorage energyStorage = createStorage();
+    private final IFluidTank fluidTank = createTank();
+
     private final ContainerData data;
 
-    private int progress, maxProgress;
+    private int progress = 0, maxProgress = SteamEngineConfig.MAX_PROGRESS.get();
 
     private LazyOptional<IItemHandler> lazyItemHandler = LazyOptional.empty();
     private LazyOptional<IEnergyStorage> lazyEnergyHandler = LazyOptional.empty();
+    private LazyOptional<IFluidTank> lazyFluidHandler = LazyOptional.empty();
 
     public WattSteamEngineBlockEntity(BlockPos p_155229_, BlockState p_155230_) {
         super(ModBlockEntities.STEAM_ENGINE.get(), p_155229_, p_155230_);
@@ -94,10 +106,8 @@ public class WattSteamEngineBlockEntity extends BlockEntity implements MenuProvi
     @Override
     public void load(CompoundTag pTag) {
         super.load(pTag);
-        if (lazyItemHandler.isPresent()) {
-            itemHandler.deserializeNBT(pTag.getCompound("Inv"));
-        }
-        energyStorage.deserializeNBT(pTag.getCompound("Energy"));
+        lazyItemHandler.ifPresent(iItemHandler -> ((ItemStackHandler) iItemHandler).deserializeNBT(pTag));
+        lazyEnergyHandler.ifPresent(iEnergyStorage -> ((CustomEnergyStorage) iEnergyStorage).deserializeNBT(pTag));
         this.progress = pTag.getInt("Progress");
         this.maxProgress = pTag.getInt("MaxProgress");
     }
@@ -121,6 +131,7 @@ public class WattSteamEngineBlockEntity extends BlockEntity implements MenuProvi
         super.onLoad();
         this.lazyItemHandler = LazyOptional.of(this::createHandler);
         this.lazyEnergyHandler = LazyOptional.of(this::createStorage);
+        this.lazyFluidHandler = LazyOptional.of(this::createTank);
     }
 
     @Override
@@ -128,6 +139,7 @@ public class WattSteamEngineBlockEntity extends BlockEntity implements MenuProvi
         super.invalidateCaps();
         this.lazyItemHandler.invalidate();
         this.lazyEnergyHandler.invalidate();
+        this.lazyFluidHandler.invalidate();
     }
 
     @Override
@@ -137,6 +149,9 @@ public class WattSteamEngineBlockEntity extends BlockEntity implements MenuProvi
         }
         if (cap == CapabilityEnergy.ENERGY) {
             return lazyEnergyHandler.cast();
+        }
+        if (cap == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
+            return lazyFluidHandler.cast();
         }
         return super.getCapability(cap, side);
     }
@@ -152,7 +167,16 @@ public class WattSteamEngineBlockEntity extends BlockEntity implements MenuProvi
     }
 
     private void assembleOutputs() {
+        SimpleContainer inv = new SimpleContainer(itemHandler.getSlots());
 
+        for (int i = 0; i < inv.getContainerSize(); i++) {
+            inv.setItem(i, inv.getItem(i));
+        }
+        assert level != null;
+        level.getRecipeManager().getRecipeFor(ModRecipes.STEAM_ENGINE_TYPE.get(), inv, level).ifPresent(steamEngineRecipe -> {
+            itemHandler.extractItem(0, 1, false);
+            itemHandler.extractItem(1, 1, false);
+        });
     }
 
     private boolean hasRecipe() {
@@ -164,11 +188,14 @@ public class WattSteamEngineBlockEntity extends BlockEntity implements MenuProvi
             inv.setItem(i, inv.getItem(i));
         }
 
-        return match.isPresent() && isFuelPresent();
+        return match.isPresent() && isFuelPresent() && inputDetected();
     }
 
     private boolean isFuelPresent() {
         return !itemHandler.getStackInSlot(0).isEmpty();
+    }
+    private boolean inputDetected() {
+        return !itemHandler.getStackInSlot(1).isEmpty();
     }
 
     @Override
@@ -197,7 +224,32 @@ public class WattSteamEngineBlockEntity extends BlockEntity implements MenuProvi
         };
     }
 
+    public IFluidTank createTank() {
+        return new FluidTank(SteamEngineConfig.CAPACITY.get()) {
+            @Override
+            protected void onContentsChanged() {
+                setChanged();
+            }
+        };
+    }
+
     public int getContainerSize() {
         return 5;
+    }
+
+    @Override
+    public void registerControllers(AnimationData data) {
+        data.addAnimationController(new AnimationController(this, "controller", 0, event -> {
+            if (progress != maxProgress) {
+                event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.watt_steam_engine.wheel", true));
+                return PlayState.CONTINUE;
+            }
+            return PlayState.STOP;
+        }));
+    }
+
+    @Override
+    public AnimationFactory getFactory() {
+        return new AnimationFactory(this);
     }
 }
